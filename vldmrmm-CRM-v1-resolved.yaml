@@ -1,0 +1,514 @@
+openapi: 3.0.0
+info:
+  title: API CRM-сервиса
+  description: API предоставляет возможность управлять балансом и тарифом абонентов в CRM-сервисе в соответствии с их правами
+  termsOfService: http://CRM-service.api.ru
+  version: v1
+servers:
+- url: http://localhost:8076
+  description: Основной сервер CRM
+tags:
+- name: Manager
+  description: "Операции, связанные с менеджером"
+- name: Subscriber
+  description: "Операции, связанные с абонентом"
+- name: Login
+  description: "Операции, связанные с авторизацией"
+paths:
+  /login/manager:
+    summary: Авторизоваться в качестве менеджера
+    description: "Менеджер входит в аккаунт, введя логин и пароль"
+    post:
+      tags:
+      - Login
+      summary: Авторизоваться в качестве менеджера
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/login_manager_body'
+        required: true
+      responses:
+        "200":
+          $ref: '#/components/responses/LoginResponse'
+        "400":
+          $ref: '#/components/responses/400Response'
+        "401":
+          $ref: '#/components/responses/401Response'
+        "5XX":
+          $ref: '#/components/responses/5xxResponse'
+  /login/subscriber:
+    summary: Авторизоваться в качестве абонента
+    description: "Абонент входит в аккаунт, введя номер телефона"
+    post:
+      tags:
+      - Login
+      summary: Авторизоваться в качестве абонента
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/login_subscriber_body'
+        required: true
+      responses:
+        "200":
+          $ref: '#/components/responses/LoginResponse'
+        "400":
+          $ref: '#/components/responses/400Response'
+        "401":
+          $ref: '#/components/responses/401Response'
+        "5XX":
+          $ref: '#/components/responses/5xxResponse'
+  /manager/subscribers/{msisdn}:
+    summary: Найти абонента
+    description: "Менеджер делает поиск абонента по номеру, после чего ему отображается профиль абонента"
+    get:
+      tags:
+      - Manager
+      summary: Посмотреть информацию об абоненте
+      parameters:
+      - name: msisdn
+        in: path
+        required: true
+        schema:
+          pattern: "^7\\d{10}$"
+          type: string
+          example: "79999999999"
+      responses:
+        "200":
+          description: Успешно возвращена информация об абоненте
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/subscriberInfo'
+        "400":
+          $ref: '#/components/responses/400Response'
+        "403":
+          $ref: '#/components/responses/403Response'
+        "404":
+          $ref: '#/components/responses/404Response'
+        "5XX":
+          $ref: '#/components/responses/5xxResponse'
+      security:
+      - basicAuthManager: []
+  /manager/subscribers/{msisdn}/changeTariff:
+    summary: Смена тарифа абонента менеджером
+    description: Менеджер меняет тариф абонента
+    put:
+      tags:
+      - Manager
+      summary: Изменить тариф пользователя
+      operationId: changeTariff
+      parameters:
+      - name: msisdn
+        in: path
+        required: true
+        schema:
+          pattern: "^7\\d{10}$"
+          type: string
+          example: "79999999999"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/msisdn_changeTariff_body'
+        required: true
+      responses:
+        "200":
+          description: Тариф успешно изменен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/subscriberInfo'
+        "400":
+          $ref: '#/components/responses/400Response'
+        "403":
+          $ref: '#/components/responses/403Response'
+        "404":
+          $ref: '#/components/responses/404Response'
+        "5XX":
+          $ref: '#/components/responses/5xxResponse'
+      security:
+      - basicAuthManager: []
+  /manager/subscribers/{msisdn}/pay:
+    summary: Пополнение баланса абонента менеджером
+    description: Менеджер пополняет баланс абонента
+    post:
+      tags:
+      - Manager
+      summary: Пополнить баланс абонента
+      operationId: changeBalanceManager
+      parameters:
+      - name: msisdn
+        in: path
+        required: true
+        schema:
+          pattern: "^7\\d{10}$"
+          type: string
+          example: "79999999999"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/msisdn_pay_body'
+        required: true
+      responses:
+        "200":
+          description: Баланс успешно пополнен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/subscriberInfo'
+        "400":
+          $ref: '#/components/responses/400Response'
+        "403":
+          $ref: '#/components/responses/403Response'
+        "404":
+          $ref: '#/components/responses/404Response'
+        "5XX":
+          $ref: '#/components/responses/5xxResponse'
+      security:
+      - basicAuthManager: []
+  /manager/subscribers/save:
+    summary: Создание нового абонента
+    description: Добавление нового абонента в систему
+    post:
+      tags:
+      - Manager
+      summary: Добавить нового абонента
+      operationId: save
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/subscribers_save_body'
+        required: true
+      responses:
+        "201":
+          description: Абонент успешно добавлен в систему
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/subscriberInfo'
+        "409":
+          $ref: '#/components/responses/409Response'
+        "400":
+          $ref: '#/components/responses/400Response'
+        "403":
+          $ref: '#/components/responses/403Response'
+        "5XX":
+          $ref: '#/components/responses/5xxResponse'
+      security:
+      - basicAuthManager: []
+  /subscribers/me:
+    summary: Личный кабинет абонента
+    description: Абонент может посмотреть доступную информацию в своем профиле
+    get:
+      tags:
+      - Subscriber
+      summary: Посмотреть доступную информацию
+      responses:
+        "200":
+          description: Успешно возвращена информация об абоненте
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/subscriber'
+        "400":
+          $ref: '#/components/responses/400Response'
+        "403":
+          $ref: '#/components/responses/403Response'
+        "404":
+          $ref: '#/components/responses/404Response'
+        "5XX":
+          $ref: '#/components/responses/5xxResponse'
+      security:
+      - basicAuthSubscriber: []
+  /subscribers/me/pay:
+    summary: Пополнение абонентом своего баланса
+    description: Абонент пополняет свой баланс
+    post:
+      tags:
+      - Subscriber
+      summary: Пополнить свой баланс
+      operationId: changeBalanceSubscriber
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/me_pay_body'
+        required: true
+      responses:
+        "200":
+          description: Баланс успешно пополнен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/subscriber'
+        "400":
+          $ref: '#/components/responses/400Response'
+        "403":
+          $ref: '#/components/responses/403Response'
+        "404":
+          $ref: '#/components/responses/404Response'
+        "5XX":
+          $ref: '#/components/responses/5xxResponse'
+      security:
+      - basicAuthSubscriber: []
+components:
+  schemas:
+    subscriber:
+      required:
+      - balance
+      - msisdn
+      - tariffName
+      type: object
+      properties:
+        msisdn:
+          pattern: "^7\\d{10}$"
+          type: string
+          description: Номер телефона абонента
+          example: "79999999999"
+        tariffName:
+          type: string
+          description: Название тарифа
+          example: Классический
+        balance:
+          type: number
+          description: Баланс абонента
+          example: 500
+        resources:
+          type: object
+          additionalProperties:
+            type: number
+          description: Оставшиеся ресурсы абонента
+          example:
+            sms: 35
+            minutes: 27
+      description: Доступная информация о себе
+    subscriberInfo:
+      required:
+      - balance
+      - fullname
+      - msisdn
+      - registrationDate
+      - tariffName
+      type: object
+      properties:
+        fullname:
+          type: string
+          description: ФИО абонента
+          example: Иванов Иван Иванович
+        msisdn:
+          pattern: "^7\\d{10}$"
+          type: string
+          description: Номер телефона абонента
+          example: "79999999999"
+        tariffName:
+          type: string
+          description: Название тарифа
+          example: Классический
+        balance:
+          type: number
+          description: Баланс абонента
+          example: 500
+        resources:
+          type: object
+          additionalProperties:
+            type: number
+          description: Оставшиеся ресурсы абонента
+          example:
+            sms: 35
+            minutes: 27
+        registrationDate:
+          type: string
+          description: Время регистрации абонента
+          format: date-time
+        lastPaymentDate:
+          type: string
+          description: Дата последнего списания денег
+          format: date-time
+        updateDate:
+          type: string
+          description: Дата последнего обновления информации об абоненте
+          format: date-time
+      description: Информация об абоненте
+    login_manager_body:
+      required:
+      - login
+      - password
+      type: object
+      properties:
+        login:
+          type: string
+          description: Логин менеджера
+          example: admin
+        password:
+          type: string
+          description: Пароль менеджера
+          example: admin
+    login_subscriber_body:
+      required:
+      - msisdn
+      type: object
+      properties:
+        msisdn:
+          pattern: "^7\\d{10}$"
+          type: string
+          description: Номер телефона
+          example: "79999999999"
+    msisdn_changeTariff_body:
+      required:
+      - tariffId
+      type: object
+      properties:
+        tariffId:
+          type: integer
+          description: ID нового тарифа
+          example: 12
+    msisdn_pay_body:
+      required:
+      - amount
+      type: object
+      properties:
+        amount:
+          type: number
+          description: Сумма пополнения
+          example: 150
+    subscribers_save_body:
+      required:
+      - fullname
+      - msisdn
+      - tariffID
+      type: object
+      properties:
+        msisdn:
+          pattern: "^7\\d{10}$"
+          type: string
+          description: Номер телефона абонента
+          example: "79999999999"
+        fullname:
+          type: string
+          description: ФИО абонента
+          example: Иванов Иван Иванович
+        tariffID:
+          type: integer
+          description: ID тарифа
+          example: 12
+        balance:
+          type: number
+          description: Баланс нового абонента
+          example: 100
+    me_pay_body:
+      required:
+      - amount
+      type: object
+      properties:
+        amount:
+          type: number
+          description: Сумма пополнения
+          example: 150
+  responses:
+    "400Response":
+      description: Некорректный запрос
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              code:
+                type: string
+                description: Уникальный код ошибки для обработки на клиенте
+                example: INVALID_REQUEST
+              error:
+                type: string
+                example: Некорректный запрос.
+    "404Response":
+      description: Абонент не найден
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              code:
+                type: string
+                description: Уникальный код ошибки для обработки на клиенте
+                example: NOT_FOUND
+              error:
+                type: string
+                example: Абонент не найден
+    "5xxResponse":
+      description: Ошибка сервера
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              code:
+                type: string
+                description: Уникальный код ошибки для обработки на клиенте
+                example: INTERNAL_ERROR
+              error:
+                type: string
+                example: Ошибка сервера. Попробуйте позже
+    "403Response":
+      description: Доступ запрещен
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              code:
+                type: string
+                description: Уникальный код ошибки для обработки на клиенте
+                example: FORBIDDEN
+              error:
+                type: string
+                example: Доступ запрещен
+    "401Response":
+      description: Неверный логин/пароль
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              code:
+                type: string
+                description: Уникальный код ошибки для обработки на клиенте
+                example: UNAUTHORIZED
+              error:
+                type: string
+                example: Неверный логин/пароль
+    "409Response":
+      description: Номер занят
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              code:
+                type: string
+                description: Уникальный код ошибки для обработки на клиенте
+                example: CONFLICT
+              error:
+                type: string
+                example: Номер телефона занят
+    LoginResponse:
+      description: Успешная аутентификация
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              token:
+                type: string
+                example: eyJhbGciOiJIUz...
+  securitySchemes:
+    basicAuthManager:
+      type: http
+      description: Basic Auth для менеджеров (login/password)
+      scheme: basic
+    basicAuthSubscriber:
+      type: http
+      description: Basic Auth для менеджеров (msisdn)
+      scheme: basic
