@@ -14,4 +14,4 @@
 
 ## [Swagger file](https://github.com/vldmrmm/nexign-bootcamp-billing/blob/main/vldmrmm-CRM-v1-resolved.yaml)
 
-## [Открыть в Swagger Editor](https://editor.swagger.io/?url=https://raw.githubusercontent.com/vldmrmm/nexign-bootcamp-billing/blob/main/vldmrmm-CRM-v1-resolved.yaml)
+## [Открыть в Swagger Editor](https://editor.swagger.io/?url=https://raw.githubusercontent.com/vldmrmm/nexign-bootcamp-billing/main/vldmrmm-CRM-v1-resolved.yaml)
